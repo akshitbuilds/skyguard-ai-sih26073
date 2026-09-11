@@ -1,0 +1,87 @@
+{
+  "model_type": "LSTM_Autoencoder",
+  "architecture": "LSTM(64)->LSTM(32,latent)->RepeatVector->LSTM(32)->LSTM(64)->TimeDistributed(Dense)",
+  "sequence_length": 12,
+  "stride": 1,
+  "features": [
+    "temperature_c_scaled",
+    "pressure_hpa_scaled",
+    "humidity_pct_scaled",
+    "hour_sin",
+    "hour_cos",
+    "doy_sin",
+    "doy_cos"
+  ],
+  "latent_dimension": 32,
+  "lstm_units": [
+    64,
+    32,
+    32,
+    64
+  ],
+  "threshold": 0.05402318388223648,
+  "threshold_method": "mean_plus_2std",
+  "threshold_selection_rule": "highest F1 on labeled synthetic faults among Step-6 normal-data-derived candidates; chosen once, not re-tuned",
+  "training_dataset": "clean_dataset.csv",
+  "excluded_training_event": {
+    "station_id": "AWS_DIU",
+    "start": "2021-05-16",
+    "end": "2021-05-18",
+    "event": "Tauktae",
+    "excluded_row_count": 72
+  },
+  "optimizer": "Adam",
+  "learning_rate": 0.001,
+  "batch_size": 512,
+  "random_seed": 42,
+  "candidate_seq_lens_tested": [
+    12,
+    24,
+    48
+  ],
+  "seq_len_selection_evidence": "Initial selection (Step 5) picked SEQ_LEN=12 on validation MSE alone, with a documented concern that a short window might hurt detection of longer-duration faults like 'drift'. Step 7c re-evaluated all 3 candidates end-to-end against labeled faulty_dataset.csv (not just MSE) to test that concern directly: SEQ_LEN=12 remained the best overall (F1=0.089 vs 0.043 for 24h, 0.040 for 48h), confirming the original choice -- but ALL THREE lengths scored similarly poorly on 'drift' specifically (F1 0.039-0.044 regardless of window size). This shows context length was NOT the bottleneck for drift detection. The more likely explanation: synthetic drift faults resemble the legitimate seasonal drift the model was trained to reconstruct via the doy_sin/doy_cos cyclic features, so reconstruction error doesn't spike much even during a genuine drift fault. This is a real architectural limitation of pure reconstruction-error anomaly scoring for slow, seasonal-like faults, not a sequence-length issue -- documented for the final report's limitations section.",
+  "ml_anomaly_score_definition": "ECDF of reconstruction_error against the TRAIN split's reconstruction error distribution (see train_error_reference_sorted.npy and src/threshold.py)",
+  "overall_evaluation_metrics": {
+    "precision": 0.13964497041420118,
+    "recall": 0.06481142438667155,
+    "f1": 0.08853319994998124,
+    "false_positive_rate": 0.057077804820601395,
+    "confusion_matrix": {
+      "tp": 354,
+      "fp": 2181,
+      "fn": 5108,
+      "tn": 36030
+    }
+  },
+  "per_fault_type_metrics": {
+    "spike": {
+      "n_events": 214,
+      "precision": 0.06112785191562634,
+      "recall": 0.6635514018691588,
+      "f1": 0.11194324004729996,
+      "detection_rate": 0.6635514018691588
+    },
+    "frozen": {
+      "n_events": 1294,
+      "precision": 0.03109729009329187,
+      "recall": 0.05409582689335394,
+      "f1": 0.039492242595204514,
+      "detection_rate": 0.05409582689335394
+    },
+    "dropout": {
+      "n_events": 200,
+      "precision": 0.0031992687385740404,
+      "recall": 0.035,
+      "f1": 0.005862646566164154,
+      "detection_rate": 0.035
+    },
+    "drift": {
+      "n_events": 3754,
+      "precision": 0.05829015544041451,
+      "recall": 0.03596164091635589,
+      "f1": 0.044481054365733116,
+      "detection_rate": 0.03596164091635589
+    }
+  },
+  "trained_on": "train.csv sequences ONLY -- never faulty_dataset.csv, never ground_truth_labels.csv, never Tauktae rows (structurally excluded in Steps 2-4, verified by checks at each stage)"
+}

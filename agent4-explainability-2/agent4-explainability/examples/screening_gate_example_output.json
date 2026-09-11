@@ -1,0 +1,257 @@
+[
+  {
+    "sensor_id": "IMD-TEMP-014",
+    "timestamp": "2026-09-09T06:45:00",
+    "verdict": "genuine_event",
+    "model_verdict": "genuine_event",
+    "model_confidence": 0.9994,
+    "class_probabilities": {
+      "genuine_event": 0.9994,
+      "sensor_fault": 0.0006
+    },
+    "screening_flag": "high_priority",
+    "safety_override_triggered": false,
+    "gate_reason": "high_priority reading and the model already leans genuine_event -- no override needed.",
+    "top_features": [
+      {
+        "feature": "corroborated_event_strength",
+        "value": 0.88,
+        "shap_contribution": 0.3647,
+        "meaning": "the combined strength of spatial corroboration AND physical coherence (points toward a real event)",
+        "directional": false
+      },
+      {
+        "feature": "spatial_deviation_score",
+        "value": 0.88,
+        "shap_contribution": 0.3598,
+        "meaning": "how strongly nearby sensors corroborate this deviation (spatial consistency)",
+        "directional": false
+      },
+      {
+        "feature": "incoherent_anomaly_strength",
+        "value": 0.0,
+        "shap_contribution": 0.154,
+        "meaning": "the combined strength of a high anomaly score WITH physical incoherence (points toward a fault)",
+        "directional": false
+      },
+      {
+        "feature": "physically_coherent",
+        "value": 1.0,
+        "shap_contribution": 0.1048,
+        "meaning": "whether the reading is physically plausible / consistent with correlated signals",
+        "directional": false
+      }
+    ],
+    "narrative": "Sensor IMD-TEMP-014: classified as a genuine event, physically coherent and/or spatially corroborated. Underlying model call was 'genuine_event' at 100% confidence. Leading evidence: the combined strength of spatial corroboration AND physical coherence (points toward a real event) (value=0.88) was influential in this call; how strongly nearby sensors corroborate this deviation (spatial consistency) (value=0.88) was influential in this call; the combined strength of a high anomaly score WITH physical incoherence (points toward a fault) (value=0.0) was influential in this call; whether the reading is physically plausible / consistent with correlated signals (value=1.0) was influential in this call.",
+    "inputs": {
+      "spatial_deviation_score": 0.88,
+      "ml_anomaly_score": 0.91,
+      "physically_coherent": true,
+      "screening_flag": "high_priority"
+    }
+  },
+  {
+    "sensor_id": "IMD-RAIN-022",
+    "timestamp": "2026-09-09T06:45:00",
+    "verdict": "sensor_fault",
+    "model_verdict": "sensor_fault",
+    "model_confidence": 0.9862,
+    "class_probabilities": {
+      "genuine_event": 0.0138,
+      "sensor_fault": 0.9862
+    },
+    "screening_flag": "standard",
+    "safety_override_triggered": false,
+    "gate_reason": "screening_flag=standard: model verdict used as-is (still logged for audit).",
+    "top_features": [
+      {
+        "feature": "corroborated_event_strength",
+        "value": 0.0,
+        "shap_contribution": 0.3647,
+        "meaning": "the combined strength of spatial corroboration AND physical coherence (points toward a real event)",
+        "directional": false
+      },
+      {
+        "feature": "spatial_deviation_score",
+        "value": 0.08,
+        "shap_contribution": 0.3598,
+        "meaning": "how strongly nearby sensors corroborate this deviation (spatial consistency)",
+        "directional": false
+      },
+      {
+        "feature": "incoherent_anomaly_strength",
+        "value": 0.93,
+        "shap_contribution": 0.154,
+        "meaning": "the combined strength of a high anomaly score WITH physical incoherence (points toward a fault)",
+        "directional": false
+      },
+      {
+        "feature": "physically_coherent",
+        "value": 0.0,
+        "shap_contribution": 0.1048,
+        "meaning": "whether the reading is physically plausible / consistent with correlated signals",
+        "directional": false
+      }
+    ],
+    "narrative": "Sensor IMD-RAIN-022: classified as a sensor fault, not a real event. Underlying model call was 'sensor_fault' at 99% confidence. Leading evidence: the combined strength of spatial corroboration AND physical coherence (points toward a real event) (value=0.0) was influential in this call; how strongly nearby sensors corroborate this deviation (spatial consistency) (value=0.08) was influential in this call; the combined strength of a high anomaly score WITH physical incoherence (points toward a fault) (value=0.93) was influential in this call; whether the reading is physically plausible / consistent with correlated signals (value=0.0) was influential in this call.",
+    "inputs": {
+      "spatial_deviation_score": 0.08,
+      "ml_anomaly_score": 0.93,
+      "physically_coherent": false,
+      "screening_flag": "standard"
+    }
+  },
+  {
+    "sensor_id": "IMD-RAIN-022",
+    "timestamp": "2026-09-09T07:00:00",
+    "verdict": "sensor_fault",
+    "model_verdict": "sensor_fault",
+    "model_confidence": 0.9928,
+    "class_probabilities": {
+      "genuine_event": 0.0072,
+      "sensor_fault": 0.9928
+    },
+    "screening_flag": "high_priority",
+    "safety_override_triggered": false,
+    "gate_reason": "high_priority reading, but strong multi-signal evidence supports fault (model confidence 0.99 >= 0.85, physically incoherent, spatial_deviation_score 0.05 <= 0.35 i.e. no spatial corroboration) -- dismissal is justified.",
+    "top_features": [
+      {
+        "feature": "corroborated_event_strength",
+        "value": 0.0,
+        "shap_contribution": 0.3647,
+        "meaning": "the combined strength of spatial corroboration AND physical coherence (points toward a real event)",
+        "directional": false
+      },
+      {
+        "feature": "spatial_deviation_score",
+        "value": 0.05,
+        "shap_contribution": 0.3598,
+        "meaning": "how strongly nearby sensors corroborate this deviation (spatial consistency)",
+        "directional": false
+      },
+      {
+        "feature": "incoherent_anomaly_strength",
+        "value": 0.97,
+        "shap_contribution": 0.154,
+        "meaning": "the combined strength of a high anomaly score WITH physical incoherence (points toward a fault)",
+        "directional": false
+      },
+      {
+        "feature": "physically_coherent",
+        "value": 0.0,
+        "shap_contribution": 0.1048,
+        "meaning": "whether the reading is physically plausible / consistent with correlated signals",
+        "directional": false
+      }
+    ],
+    "narrative": "Sensor IMD-RAIN-022: classified as a sensor fault, not a real event. Underlying model call was 'sensor_fault' at 99% confidence. Leading evidence: the combined strength of spatial corroboration AND physical coherence (points toward a real event) (value=0.0) was influential in this call; how strongly nearby sensors corroborate this deviation (spatial consistency) (value=0.05) was influential in this call; the combined strength of a high anomaly score WITH physical incoherence (points toward a fault) (value=0.97) was influential in this call; whether the reading is physically plausible / consistent with correlated signals (value=0.0) was influential in this call.",
+    "inputs": {
+      "spatial_deviation_score": 0.05,
+      "ml_anomaly_score": 0.97,
+      "physically_coherent": false,
+      "screening_flag": "high_priority"
+    }
+  },
+  {
+    "sensor_id": "IMD-WIND-007",
+    "timestamp": "2026-09-09T07:15:00",
+    "verdict": "escalate_uncertain",
+    "model_verdict": "sensor_fault",
+    "model_confidence": 0.906,
+    "class_probabilities": {
+      "genuine_event": 0.094,
+      "sensor_fault": 0.906
+    },
+    "screening_flag": "high_priority",
+    "safety_override_triggered": true,
+    "gate_reason": "SAFETY OVERRIDE: this high_priority reading's model call was 'sensor_fault' (confidence 0.91) but did not clear the strong-evidence bar (requires confidence>=0.85, physically incoherent, and spatial_deviation_score<=0.35). Per design policy, missing a real event is worse than a false alarm, so this is escalated rather than dismissed.",
+    "top_features": [
+      {
+        "feature": "corroborated_event_strength",
+        "value": 0.0,
+        "shap_contribution": 0.3647,
+        "meaning": "the combined strength of spatial corroboration AND physical coherence (points toward a real event)",
+        "directional": false
+      },
+      {
+        "feature": "spatial_deviation_score",
+        "value": 0.5,
+        "shap_contribution": 0.3598,
+        "meaning": "how strongly nearby sensors corroborate this deviation (spatial consistency)",
+        "directional": false
+      },
+      {
+        "feature": "incoherent_anomaly_strength",
+        "value": 0.7,
+        "shap_contribution": 0.154,
+        "meaning": "the combined strength of a high anomaly score WITH physical incoherence (points toward a fault)",
+        "directional": false
+      },
+      {
+        "feature": "physically_coherent",
+        "value": 0.0,
+        "shap_contribution": 0.1048,
+        "meaning": "whether the reading is physically plausible / consistent with correlated signals",
+        "directional": false
+      }
+    ],
+    "narrative": "Sensor IMD-WIND-007: classified as escalated as uncertain -- NOT dismissed, pending review. Underlying model call was 'sensor_fault' at 91% confidence. Leading evidence: the combined strength of spatial corroboration AND physical coherence (points toward a real event) (value=0.0) was influential in this call; how strongly nearby sensors corroborate this deviation (spatial consistency) (value=0.5) was influential in this call; the combined strength of a high anomaly score WITH physical incoherence (points toward a fault) (value=0.7) was influential in this call; whether the reading is physically plausible / consistent with correlated signals (value=0.0) was influential in this call. SAFETY OVERRIDE: this high_priority reading's model call was 'sensor_fault' (confidence 0.91) but did not clear the strong-evidence bar (requires confidence>=0.85, physically incoherent, and spatial_deviation_score<=0.35). Per design policy, missing a real event is worse than a false alarm, so this is escalated rather than dismissed.",
+    "inputs": {
+      "spatial_deviation_score": 0.5,
+      "ml_anomaly_score": 0.7,
+      "physically_coherent": false,
+      "screening_flag": "high_priority"
+    }
+  },
+  {
+    "sensor_id": "IMD-WIND-007",
+    "timestamp": "2026-09-09T07:15:00",
+    "verdict": "sensor_fault",
+    "model_verdict": "sensor_fault",
+    "model_confidence": 0.906,
+    "class_probabilities": {
+      "genuine_event": 0.094,
+      "sensor_fault": 0.906
+    },
+    "screening_flag": "standard",
+    "safety_override_triggered": false,
+    "gate_reason": "screening_flag=standard: model verdict used as-is (still logged for audit).",
+    "top_features": [
+      {
+        "feature": "corroborated_event_strength",
+        "value": 0.0,
+        "shap_contribution": 0.3647,
+        "meaning": "the combined strength of spatial corroboration AND physical coherence (points toward a real event)",
+        "directional": false
+      },
+      {
+        "feature": "spatial_deviation_score",
+        "value": 0.5,
+        "shap_contribution": 0.3598,
+        "meaning": "how strongly nearby sensors corroborate this deviation (spatial consistency)",
+        "directional": false
+      },
+      {
+        "feature": "incoherent_anomaly_strength",
+        "value": 0.7,
+        "shap_contribution": 0.154,
+        "meaning": "the combined strength of a high anomaly score WITH physical incoherence (points toward a fault)",
+        "directional": false
+      },
+      {
+        "feature": "physically_coherent",
+        "value": 0.0,
+        "shap_contribution": 0.1048,
+        "meaning": "whether the reading is physically plausible / consistent with correlated signals",
+        "directional": false
+      }
+    ],
+    "narrative": "Sensor IMD-WIND-007: classified as a sensor fault, not a real event. Underlying model call was 'sensor_fault' at 91% confidence. Leading evidence: the combined strength of spatial corroboration AND physical coherence (points toward a real event) (value=0.0) was influential in this call; how strongly nearby sensors corroborate this deviation (spatial consistency) (value=0.5) was influential in this call; the combined strength of a high anomaly score WITH physical incoherence (points toward a fault) (value=0.7) was influential in this call; whether the reading is physically plausible / consistent with correlated signals (value=0.0) was influential in this call.",
+    "inputs": {
+      "spatial_deviation_score": 0.5,
+      "ml_anomaly_score": 0.7,
+      "physically_coherent": false,
+      "screening_flag": "standard"
+    }
+  }
+]

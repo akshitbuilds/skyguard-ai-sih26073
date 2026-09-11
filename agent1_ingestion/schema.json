@@ -1,0 +1,22 @@
+{
+  "description": "One AWS sensor reading. This is the exact record shape every downstream agent should expect from the stream.",
+  "fields": {
+    "station_id": "string, e.g. AWS_001",
+    "timestamp": "string, ISO 8601, e.g. 2025-06-01T14:30:00",
+    "temperature_c": "float, degrees Celsius",
+    "pressure_hpa": "float, hPa",
+    "humidity_pct": "float, percent (0-100)",
+    "latitude": "float, decimal degrees",
+    "longitude": "float, decimal degrees"
+  },
+  "example": {
+    "station_id": "AWS_001",
+    "timestamp": "2025-06-01T14:30:00",
+    "temperature_c": 31.2,
+    "pressure_hpa": 1008.4,
+    "humidity_pct": 62.1,
+    "latitude": 28.61,
+    "longitude": 77.21
+  },
+  "notes": "Ground-truth anomaly labels are NOT part of this record. They live separately in ground_truth_labels.csv so Agent 2 never trains/tests on a stream that secretly contains the answer key. fault_type values: spike, frozen, dropout, drift, genuine_event (real documented weather event, NOT a fault -- see PROTECTED_EVENTS in fault_injector.py)."
+}

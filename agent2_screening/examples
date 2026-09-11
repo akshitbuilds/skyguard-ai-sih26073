@@ -1,0 +1,181 @@
+"""
+Cyclone Tauktae — landfall-window test case.
+
+IMPORTANT: This is NOT raw AWS telemetry. No public raw station-level
+CSV/JSON feed for Tauktae was available to fetch here. Instead this
+reconstructs a *plausible* station reading sequence using PUBLICLY
+REPORTED figures from IMD bulletins and press coverage around the
+17 May 2021 landfall (sources checked: IMD preliminary report PDF,
+Wikipedia, Hindustan Times/PressReader coverage):
+
+    - Landfall near Una, between Porbandar and Mahuva (Bhavnagar dist.), Gujarat
+    - Minimum central pressure at landfall: 950 hPa
+    - Max sustained wind at the eye at landfall: ~160-170 km/h (~44-47 m/s),
+      gusting to ~185-190 km/h (~51-53 m/s)
+    - Diu (near the track, but off-center) reported ~110 km/h (~31 m/s) sustained
+    - Heavy rainfall and near-saturated humidity accompanied landfall
+
+This lets us sanity-check Agent2 against a REAL, well-documented extreme
+event: a coastal station right on the track should show a severe,
+physically-extreme but temporally CONSISTENT (not jump-per-reading noisy)
+build-up, while a nearby-but-off-track station (modeled on Diu) shows a
+smaller deviation. This is exactly the "extreme but real, don't reject it"
+case the design doc's Phase 5/6 target.
+"""
+import sys, os, json
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from datetime import datetime, timedelta
+from agent2 import Agent2, StationReading, Coordinates
+
+
+def mk(sid, t, temp, hum, pres, wind, wdir, rain, lat, lon):
+    return StationReading(sid, t, Coordinates(lat, lon), temp, hum, pres, wind, wdir, rain)
+
+# approximate coastal coordinates
+UNA = (20.82, 71.03)       # near landfall point
+DIU = (20.71, 70.99)       # off-track, ~15km away, less intense per reports
+VERAVAL = (20.90, 70.37)   # further along the coast, weaker
+
+
+def build_tauktae_window():
+    """Hourly readings from 5 hours before to landfall (~2030 IST, 17 May 2021)."""
+    landfall = datetime(2021, 5, 17, 20, 30)
+    times = [landfall - timedelta(hours=h) for h in (5, 4, 3, 2, 1, 0)]
+
+    # UNA (on-track): pressure falls from ~995 -> 950 hPa, wind ramps 15 -> 46 m/s,
+    # gusts implied higher but we track sustained wind_speed_ms, humidity saturates,
+    # heavy rain builds. This is a smooth, physically consistent multi-hour trend
+    # matching IMD's reported intensification curve, not a single-reading spike.
+    una_series = [
+        (995.0, 15.0, 210, 75, 8.0),
+        (988.0, 20.0, 213, 82, 20.0),
+        (978.0, 28.0, 216, 88, 45.0),
+        (965.0, 36.0, 219, 93, 70.0),
+        (955.0, 42.0, 221, 96, 95.0),
+        (950.0, 46.0, 223, 98, 120.0),   # landfall: 950 hPa, ~46 m/s (~166 km/h)
+    ]
+    # temperature drops a few degrees as rain/cloud cover builds ahead of landfall
+    una_temps = [31.5, 30.8, 29.9, 29.0, 28.4, 27.8]
+    una_hist = []
+    for t, (pres, wind, wdir, hum, rain), temp in zip(times, una_series, una_temps):
+        una_hist.append(mk("UNA", t, temp, hum, pres, wind, wdir, rain, *UNA))
+    una_current = una_hist[-1]
+    una_history = una_hist[:-1]
+
+    # DIU (off-track, ~15km away): still severe, reported ~110 km/h (~31 m/s),
+    # pressure falls but less than the eye track, per press reports.
+    diu_series = [
+        (997.0, 12.0, 208, 70, 5.0),
+        (992.0, 16.0, 210, 76, 12.0),
+        (985.0, 21.0, 213, 82, 28.0),
+        (976.0, 26.0, 215, 87, 48.0),
+        (969.0, 29.0, 217, 90, 65.0),
+        (966.0, 31.0, 218, 92, 80.0),   # ~112 km/h, matches Diu's reported ~110 km/h
+    ]
+    diu_hist = [mk("DIU", t, 28.0, hum, pres, wind, wdir, rain, *DIU)
+                for t, (pres, wind, wdir, hum, rain) in zip(times, diu_series)]
+
+    # VERAVAL (further along coast, weaker impact)
+    ver_series = [
+        (999.0, 8.0, 205, 65, 2.0),
+        (996.0, 10.0, 207, 70, 6.0),
+        (992.0, 13.0, 209, 75, 15.0),
+        (987.0, 16.0, 211, 79, 25.0),
+        (983.0, 18.0, 213, 82, 35.0),
+        (981.0, 19.0, 214, 84, 42.0),
+    ]
+    ver_hist = [mk("VERAVAL", t, 27.5, hum, pres, wind, wdir, rain, *VERAVAL)
+                for t, (pres, wind, wdir, hum, rain) in zip(times, ver_series)]
+
+    neighbors = [diu_hist[-1], ver_hist[-1]]
+    return una_current, una_history, neighbors
+
+
+def main():
+    agent = Agent2()
+    current, history, neighbors = build_tauktae_window()
+    report = agent.evaluate(current, neighbors, history)
+
+    print("=" * 70)
+    print("CYCLONE TAUKTAE — landfall window, station UNA (on-track)")
+    print("Source figures: IMD preliminary report + press coverage, 17 May 2021")
+    print("=" * 70)
+    print(f"Reading at landfall: P={current.pressure_hpa} hPa, "
+          f"Wind={current.wind_speed_ms} m/s ({current.wind_speed_ms*3.6:.0f} km/h), "
+          f"Hum={current.humidity_pct}%, Rain={current.rainfall_mm} mm")
+    print(f"PHYSICAL  = {report.physical.status}  (warnings: {report.physical.warnings})")
+    print(f"SPATIAL   = {report.spatial.status}  (deviating: {report.spatial.deviating_variables})")
+    print(f"TEMPORAL  = {report.temporal.status}")
+    print(f"REASONING = {report.reasoning.verdict}")
+    print(f"          {report.reasoning.explanation}")
+    print(f"SCORE     = {report.score.total}/100  -> {report.final_label}")
+    print()
+    print(json.dumps(report.to_dict(), indent=2))
+
+
+if __name__ == "__main__":
+    main()
+
+"""
+Reproduces the exact scenario from the design doc's Phase 5:
+
+    Region 1 (station A):
+        Humidity: 95%
+        Pressure: falling
+        Wind: increasing
+        Rainfall: beginning
+    Neighbors: normal
+
+Expected: Agent2 should say "possible localized event", NOT "sensor faulty".
+"""
+import sys, os, json
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from datetime import datetime, timedelta
+from agent2 import Agent2, StationReading, Coordinates
+
+
+def mk(station, t, temp, hum, pres, wind, wdir, rain=0.0, lat=19.07, lon=72.87):
+    return StationReading(station, t, Coordinates(lat, lon), temp, hum, pres, wind, wdir, rain)
+
+
+def main():
+    agent = Agent2()
+    t = datetime(2026, 7, 15, 14, 0)
+
+    # Station A's own recent trend: humidity climbing, pressure falling,
+    # wind picking up, rain just starting -- a consistent build-up, not a spike.
+    history = [
+        mk("A", t - timedelta(minutes=20), 29.0, 70, 1006.0, 4.0, 210, 0.0),
+        mk("A", t - timedelta(minutes=15), 28.6, 78, 1005.4, 5.5, 212, 0.5),
+        mk("A", t - timedelta(minutes=10), 28.2, 85, 1004.7, 7.0, 214, 2.0),
+        mk("A", t - timedelta(minutes=5), 27.8, 90, 1004.0, 8.5, 216, 4.0),
+    ]
+    current = mk("A", t, 27.5, 95, 1003.2, 10.0, 218, 6.5)
+
+    neighbors = [
+        mk("B", t, 33.0, 55, 1008.5, 3.0, 180),
+        mk("C", t, 34.0, 52, 1008.7, 3.2, 178),
+        mk("D", t, 33.5, 54, 1008.6, 2.8, 182),
+        mk("E", t, 34.2, 53, 1008.4, 3.1, 179),
+    ]
+
+    report = agent.evaluate(current, neighbors, history)
+
+    print("=" * 70)
+    print(f"Station {report.station_id} @ {report.timestamp}")
+    print("=" * 70)
+    print(f"PHYSICAL  = {report.physical.status}")
+    print(f"SPATIAL   = {report.spatial.status}  (deviating: {report.spatial.deviating_variables})")
+    print(f"TEMPORAL  = {report.temporal.status}")
+    print(f"REASONING = {report.reasoning.verdict}")
+    print(f"          {report.reasoning.explanation}")
+    print(f"SCORE     = {report.score.total}/100  -> {report.final_label}")
+    print()
+    print("Full JSON report:")
+    print(json.dumps(report.to_dict(), indent=2))
+
+
+if __name__ == "__main__":
+    main()
