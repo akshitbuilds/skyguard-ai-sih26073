@@ -6,7 +6,6 @@ WHY the system decided it, and WHETHER the data was corrected.
 from __future__ import annotations
 import os, sys, time
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -29,352 +28,486 @@ st.set_page_config(
 st.markdown("""
 <style>
 :root {
-  --bg:#050b14; --panel:#0b1422; --panel2:#0e1b2b; --line:#1d3047;
-  --text:#edf5ff; --muted:#8fa5bb; --cyan:#55d6ff; --green:#37e6a2;
-  --amber:#ffc857; --red:#ff5c6c; --purple:#9c8cff;
-}
-[data-testid="stAppViewContainer"] {background:var(--bg); color:var(--text);}
-[data-testid="stHeader"] {background:rgba(5,11,20,.88);}
-.block-container {max-width:1540px; padding-top:1.0rem; padding-bottom:2.5rem;}
-/* =========================================================
-   JUDGE SCENARIO SELECTOR — READABILITY FIX
-   ========================================================= */
-
-/* ---------- Closed selector ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"] {
-  width: 100% !important;
-  min-height: 48px !important;
-
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  border: 2px solid #55d6ff !important;
-  border-radius: 12px !important;
-
-  box-shadow: 0 0 18px rgba(85, 214, 255, 0.10) !important;
-
-  opacity: 1 !important;
+  --bg:#050b14;
+  --panel:#0b1725;
+  --panel2:#0e1d2d;
+  --panel3:#10253a;
+  --line:#29445e;
+  --line2:#345873;
+  --text:#f7fbff;
+  --text2:#e3edf7;
+  --muted:#b7c8d9;
+  --muted2:#96acc1;
+  --cyan:#55d6ff;
+  --green:#37e6a2;
+  --amber:#ffc857;
+  --red:#ff6675;
 }
 
-/* BaseWeb inner container */
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  border: none !important;
-  border-radius: 10px !important;
-
-  opacity: 1 !important;
+/* ---------- App canvas ---------- */
+[data-testid="stAppViewContainer"] {
+  background:var(--bg);
+  color:var(--text);
+}
+[data-testid="stHeader"] { background:rgba(5,11,20,.92); }
+.block-container {
+  max-width:1500px;
+  padding-top:.75rem;
+  padding-bottom:1.4rem;
+}
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li {
+  color:var(--muted);
+}
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionContainer"] * {
+  color:var(--muted2) !important;
+}
+[data-testid="stMetricLabel"] {
+  color:var(--muted) !important;
+  font-weight:700 !important;
+}
+[data-testid="stMetricValue"] {
+  color:var(--text) !important;
 }
 
-/* ---------- Selected value / clickable area ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  color: #ffffff !important;
-
-  opacity: 1 !important;
+/* ---------- Sidebar ---------- */
+section[data-testid="stSidebar"] {
+  background:#07111d !important;
+  border-right:1px solid #203a52 !important;
+  min-width:330px !important;
+  width:330px !important;
+}
+section[data-testid="stSidebar"] > div:first-child {
+  width:330px !important;
+}
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] li {
+  color:#dce8f3 !important;
+}
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] * {
+  color:#a9bdcf !important;
+}
+section[data-testid="stSidebar"] [data-testid="stButton"] button {
+  min-height:46px !important;
+  font-weight:850 !important;
+  border-radius:10px !important;
 }
 
-/* ---------- FORCE WHITE TEXT ON ALL SELECT DESCENDANTS ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"] *,
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] *,
-section[data-testid="stSidebar"] div[data-baseweb="select"] span,
-section[data-testid="stSidebar"] div[data-baseweb="select"] div,
-section[data-testid="stSidebar"] div[data-baseweb="select"] input {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+/* ---------- Scenario selector ---------- */
 
-  background-color: transparent !important;
-
-  opacity: 1 !important;
-
-  visibility: visible !important;
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] {
+  width:100% !important;
 }
 
-/* ---------- Selected text specifically ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"]
-[role="button"] span {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-
-  font-weight: 700 !important;
-  opacity: 1 !important;
+/* Main select control */
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] {
+  width:100% !important;
+  min-height:48px !important;
 }
 
-/* ---------- Search/input text ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"] input {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-
-  caret-color: #55d6ff !important;
-  opacity: 1 !important;
+/* Visible selected value */
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+  background:#f7fbff !important;
+  border:1px solid #55d6ff !important;
+  border-radius:11px !important;
+  min-height:48px !important;
 }
 
-/* ---------- Dropdown arrow ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"] svg {
-  color: #55d6ff !important;
-  fill: #55d6ff !important;
-  stroke: #55d6ff !important;
-
-  opacity: 1 !important;
+/* Text inside selected value */
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] div {
+  color:#07111d !important;
+  -webkit-text-fill-color:#07111d !important;
 }
 
-
-/* =========================================================
-   OPEN DROPDOWN / POPOVER
-   ========================================================= */
-
-/* Popover outer container */
-div[data-baseweb="popover"] {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  border: 1px solid #31516f !important;
-  border-radius: 12px !important;
-
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65) !important;
-
-  opacity: 1 !important;
+/* Input itself */
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] input {
+  color:#07111d !important;
+  -webkit-text-fill-color:#07111d !important;
+  opacity:1 !important;
 }
 
-/* Popover descendants */
-div[data-baseweb="popover"] *,
-div[data-baseweb="popover"] > div {
-  background-color: #0b1725 !important;
-  opacity: 1 !important;
+/* Arrow */
+section[data-testid="stSidebar"] [data-testid="stSelectbox"] svg {
+  color:#078fc0 !important;
+  fill:#078fc0 !important;
 }
 
-/* Listbox */
-div[data-baseweb="popover"] [role="listbox"] {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  border-radius: 12px !important;
-
-  padding: 6px !important;
-
-  opacity: 1 !important;
+/* Dropdown popup */
+body [role="listbox"] {
+  background:#0b1a2a !important;
+  border:1px solid #315873 !important;
+  border-radius:11px !important;
+  padding:6px !important;
 }
 
-
-/* =========================================================
-   DROPDOWN OPTIONS — MAXIMUM READABILITY
-   ========================================================= */
-
-div[data-baseweb="popover"] [role="option"] {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-
-  color: #edf5ff !important;
-  -webkit-text-fill-color: #edf5ff !important;
-
-  padding: 12px 14px !important;
-
-  border-radius: 8px !important;
-
-  font-weight: 700 !important;
-  font-size: 0.90rem !important;
-
-  opacity: 1 !important;
-  visibility: visible !important;
+body [role="listbox"] [role="option"] {
+  background:#0b1a2a !important;
+  color:#f7fbff !important;
+  -webkit-text-fill-color:#f7fbff !important;
+  padding:11px 13px !important;
+  border-radius:8px !important;
+  font-weight:750 !important;
 }
 
-/* FORCE OPTION TEXT */
-div[data-baseweb="popover"] [role="option"] *,
-div[data-baseweb="popover"] [role="option"] span,
-div[data-baseweb="popover"] [role="option"] div {
-  color: #edf5ff !important;
-  -webkit-text-fill-color: #edf5ff !important;
-
-  background: transparent !important;
-  background-color: transparent !important;
-
-  opacity: 1 !important;
-  visibility: visible !important;
+body [role="listbox"] [role="option"]:hover,
+body [role="listbox"] [role="option"][data-focused="true"] {
+  background:#143650 !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
 }
 
-
-/* =========================================================
-   HOVER STATE
-   ========================================================= */
-
-div[data-baseweb="popover"] [role="option"]:hover {
-  background: #12304a !important;
-  background-color: #12304a !important;
-
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+body [role="listbox"] [role="option"][aria-selected="true"] {
+  background:#164b6a !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+}
+/* ---------- Sidebar cards ---------- */
+.scenario-card {
+  margin:10px 0 12px;
+  padding:13px 14px;
+  border:1px solid #2f5b78;
+  border-radius:13px;
+  background:linear-gradient(135deg,#0b1d2d,#091522);
+}
+.scenario-kicker {
+  font-size:.62rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#67ddff;
+  font-weight:900;
+}
+.scenario-name {
+  font-size:1rem;
+  font-weight:900;
+  color:#fff;
+  margin-top:4px;
+}
+.scenario-meta {
+  font-size:.70rem;
+  color:#a9bdd0;
+  margin-top:4px;
 }
 
-div[data-baseweb="popover"] [role="option"]:hover *,
-div[data-baseweb="popover"] [role="option"]:hover span {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-
-  background: transparent !important;
+/* ---------- Hero ---------- */
+.hero {
+  padding:18px 21px;
+  border:1px solid #29465e;
+  border-radius:17px;
+  background:linear-gradient(135deg,#091725,#0b1d2d 60%,#07121e);
+  box-shadow:0 12px 36px rgba(0,0,0,.22);
+}
+.hero-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.hero h1 {
+  margin:0;
+  color:#fff;
+  font-size:2.15rem;
+  letter-spacing:-.04em;
+}
+.hero p {
+  margin:6px 0 0;
+  color:#c1d1df;
+  font-size:.96rem;
+}
+.badge {
+  display:inline-block;
+  padding:4px 9px;
+  margin:9px 5px 0 0;
+  border:1px solid #315873;
+  border-radius:999px;
+  color:#c2efff;
+  background:#0a1c2c;
+  font-size:.70rem;
+  font-weight:700;
+}
+.system {
+  padding:8px 11px;
+  border:1px solid #26755c;
+  background:#08251f;
+  color:#70efbe;
+  border-radius:999px;
+  font-weight:850;
+  white-space:nowrap;
+  font-size:.75rem;
 }
 
+/* ---------- Replay + runtime ---------- */
+.replay-banner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin:8px 0 10px;
+  padding:10px 14px;
+  border:1px solid #294d68;
+  border-radius:13px;
+  background:#091827;
+}
+.replay-banner .label {
+  font-size:.62rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#6bdcff;
+  font-weight:900;
+}
+.replay-banner .name {
+  font-size:1rem;
+  color:#fff;
+  font-weight:900;
+}
+.replay-banner .time {
+  font-size:.68rem;
+  color:#a5bacd;
+}
+.runtime-strip {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-items:center;
+  margin:0 0 12px;
+  padding:7px 9px;
+  border:1px solid #23435b;
+  border-radius:11px;
+  background:#081622;
+  color:#a7bbce;
+  font-size:.68rem;
+}
+.runtime-strip span {
+  padding:3px 7px;
+  border-radius:999px;
+  background:#0c2030;
+  border:1px solid #28465e;
+}
+.runtime-strip b { color:#f0f7fc; }
 
-/* =========================================================
-   SELECTED OPTION
-   ========================================================= */
-
-div[data-baseweb="popover"]
-[role="option"][aria-selected="true"] {
-  background: #16415d !important;
-  background-color: #16415d !important;
-
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+/* ---------- KPI ---------- */
+.kpi {
+  background:#0b1725;
+  border:1px solid #29445e;
+  border-radius:12px;
+  padding:10px 12px;
+  min-height:70px;
+}
+.kpi .label {
+  font-size:.64rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a9bdcf;
+  font-weight:800;
+}
+.kpi .value {
+  font-size:1.45rem;
+  font-weight:900;
+  color:#fff;
+  margin-top:2px;
+}
+.kpi .sub {
+  font-size:.68rem;
+  color:#93a9bd;
 }
 
-div[data-baseweb="popover"]
-[role="option"][aria-selected="true"] *,
-div[data-baseweb="popover"]
-[role="option"][aria-selected="true"] span {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-
-  background: transparent !important;
-
-  opacity: 1 !important;
+/* ---------- General cards ---------- */
+.card {
+  background:#0a1624;
+  border:1px solid #29445e;
+  border-radius:14px;
+  padding:14px;
+  height:100%;
+}
+.card-title {
+  font-size:.78rem;
+  color:#d7e6f2;
+  text-transform:uppercase;
+  letter-spacing:.10em;
+  font-weight:900;
+  margin-bottom:9px;
 }
 
-
-/* =========================================================
-   FOCUS / ACTIVE STATE
-   ========================================================= */
-
-section[data-testid="stSidebar"] div[data-baseweb="select"]:focus-within {
-  border-color: #55d6ff !important;
-
-  box-shadow:
-    0 0 0 2px rgba(85, 214, 255, 0.18),
-    0 0 22px rgba(85, 214, 255, 0.12) !important;
+/* ---------- Decision ---------- */
+.decision {
+  min-height:175px;
+  padding:20px 21px;
+  border-radius:16px;
+  border:1px solid #31475d;
+  background:#0b1725;
+}
+.decision h2 {
+  margin:3px 0 7px;
+  color:#fff;
+  font-size:1.85rem;
+  line-height:1.12;
+}
+.decision .reason {
+  color:#d6e3ee;
+  line-height:1.5;
+  font-size:.90rem;
+}
+.decision-good {
+  border-color:#23775b;
+  background:linear-gradient(135deg,#08251f,#0b1725);
+}
+.decision-warn {
+  border-color:#80621f;
+  background:linear-gradient(135deg,#29210f,#0b1725);
+}
+.decision-bad {
+  border-color:#803542;
+  background:linear-gradient(135deg,#2a1218,#0b1725);
+}
+.decision-critical {
+  border-color:#a92f40;
+  background:linear-gradient(135deg,#331018,#0b1725);
+}
+.chip {
+  display:inline-block;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:.68rem;
+  font-weight:800;
+  border:1px solid #31506a;
+  background:#0b1e2e;
+  color:#d2e7f7;
+  margin:3px 4px 0 0;
 }
 
-
-/* =========================================================
-   STREAMLIT SIDEBAR TEXT SAFETY
-   ========================================================= */
-
-section[data-testid="stSidebar"] div[data-baseweb="select"] label,
-section[data-testid="stSidebar"] div[data-baseweb="select"] p {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-
-  opacity: 1 !important;
+/* ---------- Pipeline ---------- */
+.stage-wrap {
+  display:flex;
+  gap:7px;
+  align-items:stretch;
 }
-.scenario-card {margin:12px 0 16px; padding:14px 15px; border:1px solid #2d5875; border-radius:14px; background:linear-gradient(135deg,#0a1b2a,#08131f);}
-.scenario-kicker {font-size:.64rem; letter-spacing:.14em; text-transform:uppercase; color:#55d6ff; font-weight:800;}
-.scenario-name {font-size:1.02rem; font-weight:850; color:#fff; margin-top:4px;}
-.scenario-meta {font-size:.72rem; color:#8fa5bb; margin-top:4px;}
-.replay-banner {display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 16px; padding:12px 16px; border:1px solid #244b68; border-radius:14px; background:linear-gradient(90deg,#091c2c,#0a1421);}
-.replay-banner .label {font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:#6bdcff; font-weight:800;}
-.replay-banner .name {font-size:1.05rem; color:#fff; font-weight:850;}
-.replay-banner .time {font-size:.72rem; color:#91a9bf;}
-.html-table {width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid #223a52; border-radius:12px; font-size:.78rem;}
-.html-table th {text-align:left; color:#7f97ae; font-size:.65rem; letter-spacing:.08em; text-transform:uppercase; background:#0a1624; padding:10px 9px; border-bottom:1px solid #223a52;}
-.html-table td {padding:10px 9px; color:#dce8f4; border-bottom:1px solid #172b3e; background:#0b1725;}
-.html-table tr:last-child td {border-bottom:none;}
-.status-stable {color:#66e6b4;font-weight:800;} .status-watch {color:#ffd36b;font-weight:800;} .status-critical {color:#ff7180;font-weight:800;}
-.status-high {color:#ffcf70;font-weight:800;} .status-medium {color:#ffb36b;font-weight:800;} .status-low {color:#9fb3c8;font-weight:800;}
-section[data-testid="stSidebar"] {background:#07101c; border-right:1px solid var(--line);}
-section[data-testid="stSidebar"] * {color:var(--text);}
-.hero {padding:22px 24px; border:1px solid #24405b; border-radius:20px;
-  background:radial-gradient(circle at 90% 0%,rgba(85,214,255,.13),transparent 30%),
-             linear-gradient(135deg,#091524,#0b1a2a 58%,#07111e); box-shadow:0 16px 50px rgba(0,0,0,.25);}
-.hero-row {display:flex; align-items:center; justify-content:space-between; gap:20px;}
-.hero h1 {margin:0; color:#fff; font-size:2.25rem; letter-spacing:-.04em;}
-.hero p {margin:7px 0 0; color:#9fb3c8; font-size:1rem;}
-.badge {display:inline-block; padding:5px 10px; margin:12px 6px 0 0; border:1px solid #31516f;
-  border-radius:999px; color:#aeeaff; background:#0a1b2b; font-size:.78rem;}
-.system {padding:8px 12px; border:1px solid #1e6a55; background:#08251e; color:#69f0bc;
-  border-radius:999px; font-weight:700; white-space:nowrap; font-size:.8rem;}
-.kpi {background:linear-gradient(180deg,#0c1827,#0a1421); border:1px solid var(--line);
-  border-radius:14px; padding:13px 15px; min-height:86px;}
-.kpi .label {font-size:.72rem; text-transform:uppercase; letter-spacing:.09em; color:#8198af;}
-.kpi .value {font-size:1.65rem; font-weight:800; color:#fff; margin-top:3px;}
-.kpi .sub {font-size:.72rem; color:#8298ad;}
-.card {background:linear-gradient(180deg,#0b1625,#09131f); border:1px solid var(--line);
-  border-radius:16px; padding:17px; height:100%;}
-.card-title {font-size:.86rem; color:#a8bdd1; text-transform:uppercase; letter-spacing:.1em; font-weight:800; margin-bottom:12px;}
-.decision {padding:20px; border-radius:17px; border:1px solid #31435a; background:#0b1725;}
-.decision h2 {margin:0 0 5px; color:#fff; font-size:1.65rem;}
-.decision .reason {color:#a9bed2; line-height:1.55; font-size:.9rem;}
-.decision-good {border-color:#1f7258; background:linear-gradient(135deg,#08231d,#0b1725);}
-.decision-warn {border-color:#7a5a1d; background:linear-gradient(135deg,#2a2110,#0b1725);}
-.decision-bad {border-color:#7b2d38; background:linear-gradient(135deg,#291116,#0b1725);}
-.decision-critical {border-color:#a92e3d; background:linear-gradient(135deg,#321017,#0b1725);}
-.chip {display:inline-block; border-radius:999px; padding:4px 9px; font-size:.72rem; font-weight:700;
-  border:1px solid #2c4057; background:#0b1b2c; color:#b8d1e8; margin:3px 4px 0 0;}
-.stage-wrap {display:flex; gap:8px; align-items:stretch;}
-.stage {flex:1; border:1px solid var(--line); background:#0b1725; border-radius:12px; padding:11px 8px; text-align:center;}
-.stage .num {color:#5b7a96; font-size:.68rem; font-weight:800;}
-.stage .name {color:#eaf4ff; font-size:.76rem; font-weight:800; margin-top:3px;}
-.stage .status {color:#69e9b4; font-size:.68rem; margin-top:3px;}
-.stage .arrow {color:#39526b; position:absolute;}
-.metricbox {background:#0b1725; border:1px solid var(--line); border-radius:12px; padding:12px;}
-.metricbox .v {font-size:1.35rem; font-weight:800; color:#fff;}
-.metricbox .l {font-size:.68rem; color:#8298ad; text-transform:uppercase; letter-spacing:.06em;}
-.explain {border-left:3px solid var(--cyan); padding:9px 12px; background:#091a28; border-radius:0 10px 10px 0; color:#c5d6e6;}
-.protect {border:1px solid #1d8062; background:#07241d; border-radius:14px; padding:16px; color:#9af2cd;}
-.alert {border:1px solid #8c3340; background:#2a1117; border-radius:14px; padding:16px; color:#ffd9dd;}
-.correction {border:1px solid #275b7a; background:#0a1d2b; border-radius:14px; padding:15px;}
-.small {font-size:.78rem; color:#8298ad;}
-.footer {text-align:center; color:#526a82; font-size:.7rem; padding-top:18px;}
-.runtime-strip {display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px;padding:9px 12px;border:1px solid #1d3b53;border-radius:12px;background:#081622;color:#91a9bf;font-size:.72rem;}
-.runtime-strip span {padding:3px 8px;border-radius:999px;background:#0b1d2d;border:1px solid #203d55;}
-.runtime-strip b {color:#eaf6ff;}
-button[kind="primary"] {background:#168bc1; border-color:#31b9ef;}
-[data-testid="stMetricValue"] {color:#fff;}
-[data-testid="stDataFrame"] {border:1px solid var(--line); border-radius:12px;}
+.stage {
+  flex:1;
+  border:1px solid #29445e;
+  background:#0b1725;
+  border-radius:10px;
+  padding:9px 6px;
+  text-align:center;
+}
+.stage .num { color:#6b8ca8; font-size:.64rem; font-weight:900; }
+.stage .name { color:#f0f7fc; font-size:.70rem; font-weight:900; margin-top:3px; }
+.stage .status { color:#70e9b8; font-size:.62rem; margin-top:3px; }
 
-/* ---------- Final Streamlit/BaseWeb selector override ---------- */
-section[data-testid="stSidebar"] div[data-baseweb="select"],
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] {
-  background: #0b1725 !important;
-  background-color: #0b1725 !important;
-  color: #ffffff !important;
-  border-color: #55d6ff !important;
+/* ---------- Metrics / evidence ---------- */
+.metricbox {
+  background:#0b1928;
+  border:1px solid #29445e;
+  border-radius:11px;
+  padding:10px;
+}
+.metricbox .v { font-size:1.22rem; font-weight:900; color:#fff; }
+.metricbox .l {
+  font-size:.64rem;
+  color:#9eb4c7;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  margin-top:2px;
+}
+.explain {
+  border-left:3px solid var(--cyan);
+  padding:9px 11px;
+  background:#0a1d2d;
+  border-radius:0 9px 9px 0;
+  color:#d8e7f2;
+  line-height:1.45;
+  font-size:.82rem;
+}
+.protect {
+  border:1px solid #238263;
+  background:#07251e;
+  border-radius:12px;
+  padding:13px;
+  color:#b4f4da;
+  line-height:1.45;
+}
+.alert {
+  border:1px solid #8d3542;
+  background:#2a1117;
+  border-radius:12px;
+  padding:13px;
+  color:#ffe0e4;
+}
+.correction {
+  border:1px solid #2b607f;
+  background:#0a1e2d;
+  border-radius:12px;
+  padding:13px;
+  color:#d8e9f5;
+}
+.small { font-size:.72rem; color:#a0b5c8; }
+.footer {
+  text-align:center;
+  color:#6e879f;
+  font-size:.64rem;
+  padding-top:14px;
 }
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] > div,
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] div,
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] span,
-section[data-testid="stSidebar"] div[data-baseweb="select"] [role="button"] input {
-  color: #ffffff !important;
-  background: transparent !important;
-  opacity: 1 !important;
-  -webkit-text-fill-color: #ffffff !important;
+/* ---------- Tables / dataframe ---------- */
+.html-table {
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid #29445e;
+  border-radius:11px;
+  font-size:.72rem;
+}
+.html-table th {
+  text-align:left;
+  color:#b4c8da;
+  font-size:.61rem;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  background:#0b1928;
+  padding:8px 8px;
+  border-bottom:1px solid #29445e;
+}
+.html-table td {
+  padding:8px 8px;
+  color:#e8f1f8;
+  border-bottom:1px solid #1c3348;
+  background:#0b1725;
+}
+.html-table tr:last-child td { border-bottom:none; }
+.status-stable {color:#69e8b6;font-weight:900;}
+.status-watch {color:#ffd56e;font-weight:900;}
+.status-critical {color:#ff7885;font-weight:900;}
+.status-high {color:#ffd16c;font-weight:900;}
+.status-medium {color:#ffb675;font-weight:900;}
+.status-low {color:#a9bdd0;font-weight:900;}
+
+/* ---------- Tabs / controls ---------- */
+button[data-baseweb="tab"] {
+  color:#b9ccdc !important;
+  font-weight:800 !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+  color:#55d6ff !important;
+}
+button[kind="primary"] {
+  background:#168bc1 !important;
+  border-color:#31b9ef !important;
+}
+[data-testid="stDataFrame"] {
+  border:1px solid #29445e;
+  border-radius:11px;
 }
 
-section[data-testid="stSidebar"] div[data-baseweb="select"] svg {
-  color: #55d6ff !important;
-  fill: #55d6ff !important;
+/* ---------- Narrow screens ---------- */
+@media (max-width:900px) {
+  .block-container {padding-left:.75rem !important; padding-right:.75rem !important;}
+  .hero-row {flex-direction:column !important; align-items:flex-start !important;}
+  .system {white-space:normal !important;}
+  .decision {min-height:0 !important;}
+  .decision h2 {font-size:1.45rem !important;}
+  .replay-banner {align-items:flex-start; flex-direction:column;}
 }
-
-div[data-baseweb="popover"],
-div[data-baseweb="popover"] > div,
-div[data-baseweb="popover"] [role="listbox"] {
-  background: #0b1725 !important;
-  color: #edf5ff !important;
-}
-
-div[data-baseweb="popover"] [role="option"],
-div[data-baseweb="popover"] [role="option"] * {
-  color: #edf5ff !important;
-  -webkit-text-fill-color: #edf5ff !important;
-  opacity: 1 !important;
-}
-
-div[data-baseweb="popover"] [role="option"][aria-selected="true"] {
-  background: #16415d !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -393,6 +526,22 @@ def severity_class(anomaly: str, severity: str) -> str:
 
 def pretty(v):
     return str(v).replace("_", " ").title()
+
+
+# Compact labels keep the sidebar selector readable on judge laptops.
+# The full scenario name remains visible in the ACTIVE REPLAY card.
+SCENARIO_SHORT_LABELS = {
+    "normal": "Normal",
+    "spike": "Sensor Spike",
+    "frozen": "Frozen Sensor",
+    "dropout": "Communication Dropout",
+    "drift": "Calibration Drift",
+    "genuine_event": "Genuine Weather Event",
+}
+
+
+def scenario_short_label(key):
+    return SCENARIO_SHORT_LABELS.get(key, SCENARIOS[key]["label"])
 
 
 def evidence_bar(label, value, caption=""):
@@ -416,15 +565,16 @@ with st.sidebar:
     scenario = st.selectbox(
     "Active replay scenario",
     list(SCENARIOS.keys()),
-    format_func=lambda x: SCENARIOS[x]["label"],
+    format_func=scenario_short_label,
     label_visibility="collapsed",
 )
     cfg_preview = SCENARIOS[scenario]
+    st.caption("Short selector labels; the full scenario name and timestamp appear below.")
     st.markdown(f"<div class=\"scenario-card\"><div class=\"scenario-kicker\">ACTIVE REPLAY</div><div class=\"scenario-name\">{cfg_preview['label']}</div><div class=\"scenario-meta\">{cfg_preview['station_id']} · {cfg_preview['timestamp']}</div></div>", unsafe_allow_html=True)
     st.caption(cfg_preview["description"])
-    run = st.button("▶  RUN SCENARIO", width="stretch", type="primary")
+    run = st.button("▶  RUN SELECTED SCENARIO", type="primary")
     st.divider()
-    st.markdown("**Decision pipeline**")
+    st.markdown("**5-Agent decision pipeline**")
     for x in [
         "01 · Ingestion",
         "02 · Physics + spatial + temporal",
@@ -475,12 +625,22 @@ st.markdown(f'''
       <span class="badge">Self-Healing</span>
       <span class="badge">Genuine-Event Safety Shield</span>
     </div>
-    <div class="system">● {"SYSTEM READY" if RUNTIME["ready"] else "SYSTEM DEGRADED"} · A2 REAL · A3 {RUNTIME["agent3"]["engine"]} · A4 SHAP · A5 HEAL</div>
+    <div class="system">● {"SYSTEM READY" if RUNTIME["ready"] else "SYSTEM DEGRADED"} · A2 REAL · A3 {("LSTM-AE" if RUNTIME["agent3"]["engine"] == "LSTM_AUTOENCODER" else "FALLBACK")} · A4 SHAP · A5 HEAL</div>
   </div>
 </div>
 ''', unsafe_allow_html=True)
 
-st.markdown(f"<div class=\"replay-banner\"><div><div class=\"label\">● Active deterministic replay</div><div class=\"name\">{SCENARIOS[scenario]["label"]}</div></div><div style=\"text-align:right\"><div class=\"time\">{selected["station_id"]} · {selected["timestamp"]}</div><div class=\"time\">Agent-1 historical stream · auditable scenario</div></div></div>", unsafe_allow_html=True)
+scenario_label = SCENARIOS[scenario]["label"]
+
+if not RUNTIME["ready"]:
+    st.error(
+        f"Judge warning: runtime is degraded. Agent 3 is `{RUNTIME['agent3']['engine']}`. "
+        "Do not present the ML demo until the LSTM Autoencoder runtime is available."
+    )
+
+selected_station = selected["station_id"]
+selected_timestamp = selected["timestamp"]
+st.markdown(f"""<div class="replay-banner"><div><div class="label">● Active deterministic replay</div><div class="name">{scenario_label}</div></div><div style="text-align:right"><div class="time">{selected_station} · {selected_timestamp}</div><div class="time">Agent-1 historical stream · auditable scenario</div></div></div>""", unsafe_allow_html=True)
 
 st.markdown(f"""<div class="runtime-strip">
   <span><b>Runtime integrity</b></span>
@@ -537,11 +697,11 @@ with left:
       <div style="color:#91a9bf;font-size:.72rem;text-transform:uppercase;letter-spacing:.1em">FINAL DECISION</div>
       <h2>{icon} {title}</h2>
       <div style="margin:5px 0 10px"><span class="chip">{selected['station_id']}</span><span class="chip">{severity.upper()}</span><span class="chip">{pct(selected.get('confidence_score',0))} CONFIDENCE</span></div>
-      <div class="reason"><b>Why:</b> {reason}</div>
-      <div style="margin-top:12px;color:#dbe8f4;font-weight:800">{action}</div>
+      <div class="reason"><b style="color:#ffffff">Why:</b> {reason}</div>
+      <div style="margin-top:15px;color:#ffffff;font-weight:900;font-size:.92rem;letter-spacing:.02em">{action}</div>
     </div>''', unsafe_allow_html=True)
 with right:
-    st.markdown('<div class="card"><div class="card-title">Station health</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">Sensor status</div>', unsafe_allow_html=True)
     h = selected.get("sensor_health_status", "green")
     health_label = {"green":"STABLE","amber":"WATCH / DEGRADING","red":"CRITICAL"}.get(h, h.upper())
     st.metric("Health status", health_label)
@@ -552,7 +712,7 @@ with right:
 st.write("")
 
 # ---------- Pipeline ----------
-st.markdown('<div class="card-title">LIVE DECISION TRACE</div>', unsafe_allow_html=True)
+st.markdown('<div class="card-title">5-AGENT DECISION PIPELINE</div>', unsafe_allow_html=True)
 ml_engine = selected.get("engine", "DETERMINISTIC_FALLBACK")
 ml_label = "LSTM-AE" if ml_engine == "LSTM_AUTOENCODER" else "UNAVAILABLE / WARM-UP"
 stages = [
@@ -572,9 +732,9 @@ st.write("")
 # ---------- Main network + station decision ----------
 left, right = st.columns([1.15, .85])
 with left:
-    st.markdown('<div class="card"><div class="card-title">📍 NETWORK DIGITAL TWIN</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">📍 NETWORK DIGITAL TWIN · 5 AWS</div>', unsafe_allow_html=True)
     mapdf = df[["latitude", "longitude", "station_id"]].copy().rename(columns={"latitude":"lat", "longitude":"lon"})
-    st.map(mapdf[["lat", "lon"]], zoom=6, width="stretch")
+    st.map(mapdf[["lat", "lon"]], zoom=6)
     rows_html = []
     for _, row in df[["station_id", "anomaly_type", "sensor_health_status", "alert_severity", "confidence_score"]].iterrows():
         h = row["sensor_health_status"]
@@ -586,7 +746,7 @@ with left:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with right:
-    st.markdown('<div class="card"><div class="card-title">🎯 SELECTED STATION</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card"><div class="card-title">🎯 SELECTED STATION · LIVE EVIDENCE</div>', unsafe_allow_html=True)
     meta = backend.STATION_META[selected["station_id"]]
     st.markdown(f"### {selected['station_id']} · {meta['name']}")
     st.caption(selected["timestamp"])
@@ -640,7 +800,23 @@ with tab1:
         st.markdown(f"**{i}.** {pretty(factor)}")
     shield_active = atype == "genuine_event"
     st.markdown(f'<div class="small" style="margin-top:10px">Final fusion verdict: <b>{pretty(atype)}</b> · Genuine-event safety shield: <b>{"ACTIVE" if shield_active else "INACTIVE"}</b></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    shap_features = exp.get("shap_features") or []
+    if shap_features:
+        st.write("")
+        st.markdown('<div class="card"><div class="card-title">SHAP feature contribution</div>', unsafe_allow_html=True)
+        shap_rows = []
+        for item in shap_features[:6]:
+            if isinstance(item, dict):
+                shap_rows.append({
+                    "Feature": pretty(item.get("feature", "unknown")),
+                    "Value": item.get("value", ""),
+                    "SHAP contribution": item.get("shap_contribution", ""),
+                    "Meaning": item.get("meaning", "")
+                })
+        if shap_rows:
+            st.dataframe(pd.DataFrame(shap_rows), hide_index=True, use_container_width=True)
+        st.caption("SHAP is shown when Agent 4 returns feature-level attribution for the selected decision.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 with tab2:
     raw = {
@@ -672,11 +848,48 @@ with tab2:
     else:
         st.success("No correction required — the observation is trusted as received.")
     st.write("")
-    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
     if atype != "none" and atype != "genuine_event":
         st.caption("Correction combines temporal history and healthy same-timestamp spatial neighbors, with safety bounds.")
 
 with tab3:
+    # Maintenance / degradation evidence. This is deliberately data-driven:
+    # if the backend exposes degradation_tracker fields, show them; otherwise
+    # never invent a prediction and fall back to the verified sensor-health state.
+    degradation = selected.get("degradation")
+    if degradation is None:
+        degradation = selected.get("degradation_tracker")
+    if degradation is None:
+        degradation = {}
+
+    if isinstance(degradation, dict):
+        degradation_status = degradation.get("status") or degradation.get("health_status")
+        maintenance_priority = degradation.get("maintenance_priority") or degradation.get("priority")
+        maintenance_reason = degradation.get("reason") or degradation.get("recommendation")
+    else:
+        degradation_status = None
+        maintenance_priority = None
+        maintenance_reason = None
+
+    st.markdown('<div class="card"><div class="card-title">Maintenance & degradation signal</div>', unsafe_allow_html=True)
+    mc1, mc2, mc3 = st.columns(3)
+    mc1.metric("Current health", {"green":"STABLE","amber":"WATCH / DEGRADING","red":"CRITICAL"}.get(
+        selected.get("sensor_health_status", "green"),
+        str(selected.get("sensor_health_status", "unknown")).upper()
+    ))
+    mc2.metric("Degradation tracker", str(degradation_status or "HEALTH STATE"))
+    mc3.metric("Maintenance priority", str(maintenance_priority or (
+        "URGENT" if selected.get("sensor_health_status") == "red"
+        else "REVIEW" if selected.get("sensor_health_status") == "amber"
+        else "NORMAL"
+    )))
+    if maintenance_reason:
+        st.caption(f"Tracker recommendation: {maintenance_reason}")
+    else:
+        st.caption("Maintenance signal is derived from the verified station-health/degradation path; no unsupported remaining-life estimate is displayed.")
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.write("")
+
     c1, c2 = st.columns(2)
     with c1:
         st.markdown('<div class="card"><div class="card-title">Architecture</div>', unsafe_allow_html=True)
@@ -687,7 +900,26 @@ with tab3:
 """)
         st.markdown('</div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="card"><div class="card-title">Verified repository evidence</div>', unsafe_allow_html=True)
+        st.markdown('<div class="card"><div class="card-title">SIH26073 requirement coverage</div>', unsafe_allow_html=True)
+        st.markdown("""
+        | Requirement | Screening implementation |
+        |---|---|
+        | Real-time anomaly path | Per-observation inference + severity/alert state |
+        | Sensor faults | Spike, frozen, dropout and drift signatures |
+        | Temporal / seasonal context | Temporal history + seasonal features |
+        | Multivariate consistency | T / P / RH physical consistency |
+        | Spatial consistency | Healthy-neighbour comparison |
+        | Genuine weather events | Regional corroboration + safety shield |
+        | Confidence + explanation | Confidence, root cause, evidence and SHAP |
+        | Self-healing | Temporal + spatial correction with safety bounds |
+        | Maintenance readiness | Agent-4 degradation signal + sensor-health state |
+        | Operator dashboard | Network, station, alert, evidence and correction views |
+        """)
+        st.caption("Screening build: deterministic replay demonstrates the real inference path. Production deployment can attach a live AWS stream to the same pipeline.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.write("")
+    with st.expander("Verified repository evidence", expanded=False):
         st.markdown(f"""
 - **6/6** deterministic screening scenarios pass end-to-end
 - **5,463 / 5,463** labeled sensor faults evaluable in the correction benchmark
@@ -696,16 +928,15 @@ with tab3:
 - **Agent 4:** `{RUNTIME['agent4']['engine']}` with SHAP + safety gate
 """)
         st.caption("These are repository validation figures, not claims of universal accuracy.")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
     st.markdown('<div class="card"><div class="card-title">Deployment readiness</div>', unsafe_allow_html=True)
     d1,d2,d3,d4 = st.columns(4)
     d1.metric("API", "FastAPI")
-    d2.metric("Streaming state", "In-memory")
+    d2.metric("Live input", "POST /process_batch")
     d3.metric("Edge path", "Quantization candidate")
     d4.metric("Persistence", "TimescaleDB-ready")
-    st.caption("Screening build: in-memory state + auditable replay. The per-station inference path is suitable for later edge quantization; no unmeasured power figure is claimed.")
+    st.caption("Screening dashboard uses deterministic Agent-1 replay. The backend already exposes /process and /process_batch for live AWS telemetry; the same inference path feeds the dashboard/API.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="footer">AGENTIC GENESIS · SKYGUARD AI · SIH26073 · Screening build · Anomaly ≠ Sensor Fault</div>', unsafe_allow_html=True)
