@@ -1,121 +1,129 @@
 # SkyGuard AI — SIH26073
 
-**Agentic Genesis · SkyGuard AI**  
-Self-aware, self-healing anomaly detection for Automatic Weather Stations.
+> **Agentic Genesis · Smart India Hackathon 2026**
+>
+> ### Self-Aware, Self-Healing Anomaly Detection for Automatic Weather Stations
 
-## What is now integrated
+**SkyGuard AI** is an AI/ML-based intelligent anomaly detection and safe data-quality system for Automatic Weather Station (AWS) networks.
 
-`Agent 1 → Agent 2 → Agent 3 → Evidence Fusion → Agent 4 → Agent 5`
+It monitors the three required AWS variables:
 
-- **Agent 1:** historical AWS stream with temperature, pressure, humidity.
-- **Agent 2:** real physical + spatial + temporal consistency screening.
-- **Agent 3:** committed LSTM autoencoder (12-hour windows) when TensorFlow/model artifacts are available.
-- **Hybrid Evidence Fusion:** auditable hard checks for dropout, frozen channels, isolated spikes, calibration drift, and regional event corroboration.
-- **Agent 4:** real RandomForest score gate, SHAP explanations, safety override, and degradation tracker.
-- **Agent 5:** real temporal/spatial correction with same-timestamp healthy neighbors and channel-preserving correction.
-- **Dashboard:** screening-round Command Center + deterministic replay scenarios.
+- 🌡️ Temperature
+- 🧭 Atmospheric Pressure
+- 💧 Relative Humidity
 
-## The differentiator
+The core problem is simple:
 
-**Anomaly ≠ sensor fault.**
+> **An anomaly does not necessarily mean the sensor is broken.**
 
-SkyGuard does not blindly correct every unusual reading. It first asks whether the pattern is:
-1. an isolated sensor failure,
-2. a degrading sensor,
-3. a communication failure, or
-4. a genuine regional weather event.
+SkyGuard determines whether an unusual observation is caused by a **sensor fault** or represents a **genuine regional weather event**, explains the decision, estimates sensor health, and performs correction only when it is safe.
 
-A genuine-event shield protects a spatially corroborated, multi-hour weather transition from automatic correction.
+---
 
-## Run
+## 🎯 SIH26073 Problem
 
-From the repository root:
+**Problem Statement:** SIH26073  
+**Title:** AI/ML-Based Intelligent Anomaly Detection for Automatic Weather Stations (AWS)  
+**Domain:** Disaster Management  
+**Organization:** Ministry of Earth Sciences / India Meteorological Department
 
-```bash
-pip install -r requirements.txt
-uvicorn backend_integration.main:app --reload --port 8000
-```
+The system must identify abnormal AWS observations such as:
 
-Dashboard:
+- Sensor spikes
+- Frozen/stuck values
+- Communication/dropout failures
+- Calibration drift
+- Temporally inconsistent observations
+- Multivariate inconsistencies
 
-```bash
-streamlit run agent5_dashboard/app.py
-```
+while avoiding false alarms during genuine extreme weather events.
 
-Release preflight + full screening gate:
+SkyGuard addresses this using a multi-agent hybrid architecture combining:
 
-```bash
-python backend_integration/preflight.py
-python backend_integration/final_release_check.py
-```
+**Physical rules + temporal analysis + spatial corroboration + LSTM anomaly detection + explainable decision gating + safe correction.**
 
-The release gate intentionally fails closed if Agent 2, the real Agent-3 LSTM-AE, or Agent 4 SHAP/safety runtime is unavailable.
+---
 
-CLI replay (does not require Streamlit):
+# 🚀 The Core Idea
 
-```bash
-python backend_integration/run_demo.py
-```
+## Anomaly ≠ Sensor Fault
 
-## Screening scenarios
+A conventional anomaly detector may see an extreme temperature or pressure change and immediately label it as faulty.
 
-The replay uses the committed Agent-1 historical data rather than random mock values:
+That is dangerous.
 
-- NORMAL NETWORK
-- ISOLATED SENSOR SPIKE
-- FROZEN SENSOR
-- COMMUNICATION DROPOUT
-- CALIBRATION DRIFT
-- GENUINE EXTREME WEATHER (Tauktae window)
+A real heatwave, storm, or regional weather transition can legitimately produce extreme observations across multiple stations.
 
-## Important model honesty
+SkyGuard therefore asks:
 
-The committed Agent-3 LSTM was evaluated by its own report and is **not** treated as a perfect detector. The system's design deliberately combines its anomaly score with independent physical, spatial, temporal and rule-based evidence. If TensorFlow is not installed, the backend labels the fallback explicitly instead of pretending it is the LSTM.
+> **"Is the sensor wrong, or is the weather real?"**
 
-## API
+The system separates:
 
-- `GET /health`
-- `POST /process`
-- `POST /process_batch`
-- `POST /reset`
-- `GET /demo/scenarios`
-- `GET /demo/scenario/{scenario}`
+1. **Isolated sensor faults**
+2. **Sensor degradation**
+3. **Communication failures**
+4. **Genuine regional weather events**
 
-## Architecture
+A genuine-event safety shield prevents automatic correction when multiple stations and temporal evidence support a real meteorological event.
+
+---
+
+# 🧠 Multi-Agent Architecture
 
 ```text
-AWS stream
-   │
-   ▼
-[Agent 1] Ingestion
-   │
-   ▼
-[Agent 2] Physics + Spatial + Temporal
-   │
-   ▼
-[Agent 3] LSTM Autoencoder
-   │
-   ▼
-[Evidence Fusion]
-   ├── dropout / frozen / spike / drift signatures
-   └── regional genuine-event shield
-   │
-   ▼
-[Agent 4] RF gate + SHAP + safety gate + degradation
-   │
-   ▼
-[Agent 5] correction + severity
-   │
-   ├──────────────► FastAPI
-   └──────────────► Streamlit Command Center
-```
-
-## Judge-first documentation
-
-- [`docs/JUDGE_SCORECARD.md`](docs/JUDGE_SCORECARD.md) — maps the implementation to the SIH26073 evaluation weights.
-- [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md) — exact six-scenario screening sequence and judge answers.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — end-to-end architecture and safety principle.
-
-## Screening build principle
-
-The Command Center is deliberately designed around one question: **"Is this anomaly a faulty sensor, or is it the weather?"** The dashboard therefore makes the final decision, evidence, correction action and genuine-event protection visible before exposing lower-level implementation details.
+                    AWS OBSERVATION
+              Temperature / Pressure / RH
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │     AGENT 1         │
+              │ Ingestion & Replay  │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │     AGENT 2         │
+              │ Physical + Spatial  │
+              │ + Temporal Screening│
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │     AGENT 3         │
+              │   LSTM Autoencoder  │
+              │ Temporal Anomaly    │
+              │      Detection      │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │   EVIDENCE FUSION   │
+              │ Rules + ML + Spatial│
+              │ + Temporal Evidence │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │     AGENT 4         │
+              │ RF Decision Gate    │
+              │ SHAP Explainability │
+              │ Safety Override     │
+              │ Degradation Tracker │
+              └──────────┬──────────┘
+                         │
+                         ▼
+              ┌─────────────────────┐
+              │     AGENT 5         │
+              │ Safe Self-Healing   │
+              │ Temporal + Spatial  │
+              │     Correction      │
+              └──────────┬──────────┘
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+        ┌───────────┐         ┌──────────────┐
+        │ FastAPI   │         │  Streamlit   │
+        │ REST API  │         │ Command      │
+        │           │         │ Center       │
+        └───────────┘         └──────────────┘
